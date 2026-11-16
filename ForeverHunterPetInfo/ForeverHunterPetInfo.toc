@@ -1,0 +1,28 @@
+## Interface: 16001
+## Title: |cffabd473Forever|r Hunter Pet Info
+## Notes: Shows the family, diet, attack speed and abilities of tameable beasts in their tooltip, with a searchable beast list. /fhpi
+## Author: Ahmet Simsek
+## Version: v0.1.0
+## SavedVariables: ForeverHunterPetInfoDB
+## IconTexture: 132161
+## Category: Combat
+## X-License: GPL-2.0
+## AddonCompartmentFunc: ForeverHunterPetInfo_OnCompartmentClick
+
+Core\Init.lua
+Locales\Locales.lua
+
+Data\Families.lua
+Data\Beasts.lua
+Data\BeastNames.lua
+
+Core\Database.lua
+Core\Learner.lua
+Core\Tooltip.lua
+
+UI\List.lua
+UI\SearchFrame.lua
+UI\Options.lua
+UI\Minimap.lua
+
+Core\Main.lua
