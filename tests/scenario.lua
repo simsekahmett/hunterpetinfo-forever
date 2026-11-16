@@ -59,10 +59,53 @@ assert(has(lines, 'Family | Fox') and has(lines, 'in the wild'))
 local note = saved.learned[238500]
 assert(note and note.family == 'Fox' and note.minLevel == 3 and note.zone == 'Zephras Isle' and note.x == 51.2, 'note')
 assert(DB:GetCounts() == total + 1)
+total = total + 1
 UNITS.imp = { guid = creature(416), name = 'Imp', level = 10, family = 'Imp' }
 assert(#Hover('imp') == 0 and saved.learned[416] == nil, 'a demon is no beast')
 UNITS.guardian = { guid = creature(238501), name = 'Hawk', level = 30, family = 'Bird of Prey', controlled = true }
 Hover('guardian'); assert(saved.learned[238501] == nil, 'a guardian is no beast')
+
+-- Beasts near the player are noted without being hovered, and told in the chat
+UNITS.nameplate3 = { guid = creature(238510), name = 'Scrawny Ursera', level = 3, family = 'Bear', speed = 2 }
+local chat = #CHATLOG
+FireEvent('NAME_PLATE_UNIT_ADDED', 'nameplate3')
+assert(saved.learned[238510] and saved.learned[238510].family == 'Bear', 'nameplate')
+assert(#CHATLOG == chat + 1 and CHATLOG[#CHATLOG]:find('Scrawny Ursera (Bear, level 3), Zephras Isle', 1, true), 'announce')
+print(CHATLOG[#CHATLOG])
+UNITS.nameplate3.level = 4
+FireEvent('NAME_PLATE_UNIT_ADDED', 'nameplate3')
+assert(saved.learned[238510].maxLevel == 4 and #CHATLOG == chat + 1, 'level range')
+UNITS.target = { guid = creature(238511), name = 'Ornery Galestrider', level = 12, family = 'Tallstrider' }
+FireEvent('PLAYER_TARGET_CHANGED')
+assert(saved.learned[238511], 'target')
+UNITS.target = UNITS.tooth; FireEvent('PLAYER_TARGET_CHANGED'); assert(saved.learned[2850] == nil)
+UNITS.nameplate5 = { guid = SECRET, family = SECRET }; FireEvent('NAME_PLATE_UNIT_ADDED', 'nameplate5')
+FireEvent('NAME_PLATE_UNIT_ADDED', SECRET)
+local noted = DB:Search({ noted = true, sort = 'name' })
+assert(#noted == 3, 'noted: ' .. #noted)
+
+-- Beast Lore lists the abilities of a beast in its tooltip
+UNITS.bear = UNITS.nameplate3
+local lore = { { leftText = 'Scrawny Ursera' }, { leftText = 'Level 4 Beast' }, { leftText = 'Bite (Rank 1), Swipe (Rank 2)' },
+  { leftText = 'Claw the enemy for 12 damage' }, { leftText = SECRET }, { leftText = 'Dash', rightText = 'Rank 3' } }
+lines = Hover('bear', { guid = UNITS.bear.guid, lines = lore })
+show('Scrawny Ursera (Beast Lore)', lines)
+local ursera = DB:GetBeast(238510)
+assert(ursera.abilitiesConfirmed and DB:GetRank(ursera, 'Bite') == 1 and DB:GetRank(ursera, 'Swipe') == 2, 'lore')
+assert(DB:GetRank(ursera, 'Claw') == nil and DB:GetRank(ursera, 'Dash') == nil, 'lore misread')
+assert(CHATLOG[#CHATLOG]:find('Scrawny Ursera teaches Bite (Rank 1), Swipe (Rank 2)', 1, true), CHATLOG[#CHATLOG])
+chat = #CHATLOG
+Hover('bear', { guid = UNITS.bear.guid, lines = lore }); assert(#CHATLOG == chat, 'told twice')
+-- Of a shipped beast as well, replacing what Classic said
+Hover('tooth', { guid = UNITS.tooth.guid, lines = { { leftText = 'x' }, { leftText = 'Dash (Rank 2)' } } })
+assert(DB:GetRank(DB:GetBeast(2850), 'Dash') == 2 and DB:GetBeast(2850).abilitiesConfirmed and DB:GetBeast(2850).speed == 1)
+saved.learned[2850] = nil; DB:Invalidate(2850)
+ns.Learner.options.announce = false
+chat = #CHATLOG
+Hover('tooth', { guid = UNITS.tooth.guid, lines = { { leftText = 'x' }, { leftText = 'Dash (Rank 1)' } } })
+assert(#CHATLOG == chat, 'announced whilst off')
+saved.learned[2850] = nil; DB:Invalidate(2850)
+ns.Learner.options.announce = true
 
 -- Taming it tells what it teaches and how fast it attacks
 UNITS.target = UNITS.fox
@@ -110,6 +153,7 @@ local fastest = search({ maxSpeed = 1.0 })
 assert(#fastest == 3 and contains(fastest, 2850), 'fastest: ' .. #fastest)
 assert(contains(search({ text = toothName:upper() }), 2850) and contains(search({ text = 'cat zone3' }), 2850))
 assert(#search({ text = 'no such beast' }) == 0)
+total = total + 2
 local foxes = search({ family = 'Fox' }); assert(#foxes == 1 and foxes[1] == 238500)
 for _, npcId in ipairs(search({ ability = 'Bite', rank = 7 })) do assert(DB:GetRank(DB:GetBeast(npcId), 'Bite') == 7) end
 assert(#search({ ability = 'Bite', rank = 7 }) > 0 and #search({ ability = 'Bite' }) > #search({ ability = 'Bite', rank = 7 }))
@@ -120,10 +164,10 @@ local byLevel = search({ sort = 'high' }); assert(DB:GetBeast(byLevel[1]).maxLev
 -- The window
 SlashCmdList.FOREVERHUNTERPETINFO('')
 local UI = ns.UI
-assert(UI.frame:IsShown() and #UI.results == total + 1)
+assert(UI.frame:IsShown() and #UI.results == total)
 SlashCmdList.FOREVERHUNTERPETINFO('wolf')
 assert(#UI.results > 0 and #UI.results < total)
-print('"wolf": ' .. #UI.results .. ' of ' .. total + 1)
+print('"wolf": ' .. #UI.results .. ' of ' .. total)
 for index = 1, 3 do
   local texts = ns.List.Describe(DB:GetBeast(UI.results[index]))
   print('  ' .. texts.name .. ' [' .. texts.speed .. ']  ' .. texts.place .. '  ' .. texts.abilities)
@@ -133,7 +177,9 @@ for _, npcId in ipairs(UI.results) do assert(DB:GetBeast(npcId).speed <= 1.3) en
 UI.levelCheck.scripts.OnClick(); UI.onlyTameable = true; PLAYER_LEVEL = 20; UI:Refresh()
 for _, npcId in ipairs(UI.results) do assert(DB:GetBeast(npcId).minLevel <= 20) end
 UI.familyPicker.scripts.OnClick(); UI.sortPicker.scripts.OnClick()
-UI:Reset(); assert(#UI.results == total + 1)
+UI:Reset(); assert(#UI.results == total)
+UI.notedCheck.scripts.OnClick(); UI.filter.noted = true; UI:Refresh(); assert(#UI.results == 3, 'noted filter')
+UI:Reset(); assert(#UI.results == total)
 UI.list:SetOffset(5); assert(UI.list.rows[1].beast.id == UI.results[6])
 SlashCmdList.FOREVERHUNTERPETINFO(''); assert(not UI.frame:IsShown())
 ForeverHunterPetInfo_OnCompartmentClick(nil, 'LeftButton'); assert(UI.frame:IsShown())

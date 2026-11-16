@@ -45,7 +45,9 @@ function Options:Init(saved)
 
   local version = panel:CreateFontString(nil, 'ARTWORK', 'GameFontDisableSmall')
   version:SetPoint('LEFT', title, 'RIGHT', 8, 0)
-  version:SetText(C_AddOns and C_AddOns.GetAddOnMetadata(ns.ADDON, 'Version') or '')
+  -- A copy that was not packaged has a placeholder for a version
+  local versionText = C_AddOns and C_AddOns.GetAddOnMetadata(ns.ADDON, 'Version') or ''
+  version:SetText(versionText:find('@', 1, true) and 'dev' or versionText)
 
   local top = -48
 
@@ -77,11 +79,18 @@ function Options:Init(saved)
   minimap:SetPoint('TOPLEFT', 14, top - 12)
   self.minimapCheck = minimap
 
+  local announce = ns.CreateCheckBox(panel, L['Tell me in the chat when a new beast or an ability is noted'],
+                                     function(isChecked)
+    ns.Learner.options.announce = isChecked
+  end)
+  announce.label:SetFontObject('GameFontHighlight')
+  announce:SetPoint('TOPLEFT', 14, top - 36)
+
   local note = panel:CreateFontString(nil, 'ARTWORK', 'GameFontDisableSmall')
-  note:SetPoint('TOPLEFT', 18, top - 46)
+  note:SetPoint('TOPLEFT', 18, top - 70)
   note:SetWidth(560)
   note:SetJustifyH('LEFT')
-  note:SetText(L['Attack speeds and abilities are those of Classic until you tame a beast: what your new pet knows is then noted, and marked as confirmed.'])
+  note:SetText(L['Attack speeds and abilities are those of Classic until the game shows otherwise. Beasts near you that are not in the data are noted. Cast Beast Lore on a beast and hover it, or tame it, and what it teaches is noted and marked as confirmed.'])
 
   panel:SetScript('OnShow', function()
     for key, check in pairs(self.checks) do
@@ -89,6 +98,7 @@ function Options:Init(saved)
     end
 
     minimap:SetChecked(not saved.minimap.hide)
+    announce:SetChecked(ns.Learner.options.announce)
   end)
 
   if _G.Settings and Settings.RegisterCanvasLayoutCategory then

@@ -4,8 +4,11 @@ local _, ns = ...
 --
 --   * how the client calls a family, from the beasts that are shipped, so
 --     that the families are recognized in every language,
---   * the beasts that are not shipped, when they are hovered: their name,
---     family, level, zone and where the player stood,
+--   * the beasts that are not shipped, when they are hovered, targeted or
+--     when their nameplate appears: their name, family, level, zone and
+--     where the player stood,
+--   * what a beast teaches, read from its tooltip once Beast Lore is cast on
+--     it, which lists its abilities,
 --   * what a beast really teaches and how fast it attacks, read from the pet
 --     right after it was tamed, before anything else was taught to it.
 --
@@ -24,8 +27,30 @@ local TAME_WINDOW = 40
 -- The pet's spellbook fills up a moment after the pet appears
 local SCAN_DELAY = 1.5
 
-function Learner:Init()
+Learner.defaults = {
+  -- Whether what is noted is told in the chat
+  announce = true,
+}
+
+function Learner:Init(saved)
+  saved.learner = saved.learner or {}
+  self.options = saved.learner
+
+  for key, value in pairs(self.defaults) do
+    if self.options[key] == nil then
+      self.options[key] = value
+    end
+  end
+
   self.seen = {}
+
+  -- The beasts around the player: those whose nameplate appears, and the target
+  ns.On('NAME_PLATE_UNIT_ADDED', function(unit)
+    self:_OnUnit(unit)
+  end)
+  ns.On('PLAYER_TARGET_CHANGED', function()
+    self:_OnUnit('target')
+  end)
 
   ns.On('UNIT_SPELLCAST_SUCCEEDED', function(unit, _, spellId)
     self:_OnSpellCast(unit, spellId)
@@ -41,8 +66,41 @@ function Learner:Init()
 end
 
 ------------------------------------------
--- Hovered beasts
+-- Wild beasts
 ------------------------------------------
+
+local function FormatAbilities(abilities)
+  local texts = {}
+
+  for ability, rank in pairs(abilities) do
+    table.insert(texts, ns.L[ability] .. ' ' .. ns.L['(Rank %d)']:format(rank))
+  end
+
+  table.sort(texts)
+  return table.concat(texts, ', ')
+end
+
+function Learner:_Announce(text)
+  if self.options.announce then
+    ns.Print(text)
+  end
+end
+
+function Learner:_OnUnit(unit)
+  if unit == nil or ns.IsSecret(unit) then
+    return
+  end
+
+  local npcId, kind = ns.ParseGuid(ns.Read(UnitGUID, unit))
+
+  if kind == 'Creature' then
+    -- A failure here must not reach the game's nameplates
+    local success, message = pcall(self.Observe, self, unit, npcId)
+    if not success then
+      geterrorhandler()(message)
+    end
+  end
+end
 
 -- Returns the player's zone and position in percent, if known
 local function GetPlayerPosition()
@@ -62,8 +120,8 @@ local function GetPlayerPosition()
   return zone, math.floor(x * 1000 + 0.5) / 10, math.floor(y * 1000 + 0.5) / 10
 end
 
--- Notes a wild creature that is being hovered. Returns the key of its family
--- if it has one, known beast or not.
+-- Notes a wild creature that is hovered, targeted or near. Returns the key
+-- of its family if it has one, known beast or not.
 function Learner:Observe(unit, npcId)
   local familyName = ns.Read(UnitCreatureFamily, unit)
 
@@ -81,8 +139,8 @@ function Learner:Observe(unit, npcId)
 
   local family = DB:GetFamilyKey(familyName)
 
-  if family == nil or self.seen[npcId] then
-    return family
+  if family == nil then
+    return nil
   end
 
   -- Pets and guardians of players are not beasts to tame
@@ -97,25 +155,104 @@ function Learner:Observe(unit, npcId)
     return family
   end
 
-  local note = DB:GetNote(npcId, true)
+  local note = DB:GetNote(npcId)
+
+  -- Seen before: only a level outside of its range is news
+  if note ~= nil and note.minLevel ~= nil then
+    if level < note.minLevel or level > note.maxLevel then
+      note.minLevel = math.min(note.minLevel, level)
+      note.maxLevel = math.max(note.maxLevel, level)
+      DB:Invalidate(npcId)
+    end
+
+    return family
+  end
+
   local zone, x, y = GetPlayerPosition()
 
+  note = DB:GetNote(npcId, true)
   note.name = name
-  note.family = family
-  note.minLevel = math.min(note.minLevel or level, level)
-  note.maxLevel = math.max(note.maxLevel or level, level)
-  note.zone = zone or note.zone
-  note.x, note.y = x or note.x, y or note.y
+  note.family = note.family or family
+  note.minLevel, note.maxLevel = level, level
+  note.zone = zone
+  note.x, note.y = x, y
 
   local speed = ns.Read(UnitAttackSpeed, unit)
   if speed ~= nil and speed > 0 then
     note.seenSpeed = math.floor(speed * 10 + 0.5) / 10
   end
 
-  self.seen[npcId] = true
   DB:Invalidate(npcId)
+  self:_Announce(ns.L['New beast noted: %s (%s, level %d), %s']:format(name, DB:GetFamilyName(family), level,
+                                                                      zone or '?'))
 
   return family
+end
+
+-- Returns the rank that follows the name of an ability in a text, as in
+-- 'Bite (Rank 3)', if the text names nothing else
+local function FindRank(text, name)
+  local _, last = text:find(name, 1, true)
+
+  if last == nil then
+    return nil
+  end
+
+  local rank = tonumber(text:sub(last + 1):match('^%s*%(?%D-(%d+)%)?%s*$'))
+  return rank ~= nil and rank >= 1 and rank <= 20 and rank or nil
+end
+
+-- Notes the abilities listed in the tooltip of a wild beast, which the game
+-- adds once Beast Lore is cast on it. 'lines' are those of the tooltip's
+-- data, the first of which is the name of the beast.
+function Learner:ReadLore(npcId, family, lines)
+  local familyData = DB:GetFamily(family)
+
+  if familyData == nil or type(lines) ~= 'table' then
+    return
+  end
+
+  local found = {}
+
+  for index = 2, #lines do
+    local line = lines[index]
+
+    for _, text in ipairs({ line.leftText, line.rightText }) do
+      if type(text) == 'string' and not ns.IsSecret(text) and #text < 120 then
+        -- Several abilities may share a line
+        for part in text:gmatch('[^,;\n]+') do
+          for _, ability in ipairs(familyData.abilities) do
+            local rank = FindRank(part, ns.L[ability])
+
+            if rank ~= nil then
+              found[ability] = rank
+            end
+          end
+        end
+      end
+    end
+  end
+
+  if next(found) == nil then
+    return
+  end
+
+  local note = DB:GetNote(npcId, true)
+  local isNews = note.abilities == nil
+
+  for ability, rank in pairs(found) do
+    isNews = isNews or note.abilities[ability] ~= rank
+  end
+
+  if not isNews then
+    return
+  end
+
+  note.abilities = found
+  DB:Invalidate(npcId)
+
+  local beast = DB:GetBeast(npcId)
+  self:_Announce(ns.L['%s teaches %s']:format(beast and beast.name or ('NPC ' .. npcId), FormatAbilities(found)))
 end
 
 ------------------------------------------
@@ -265,5 +402,11 @@ function Learner:ScanPet(npcId)
   end
 
   DB:Invalidate(npcId)
+
+  if next(abilities) ~= nil then
+    local beast = DB:GetBeast(npcId)
+    self:_Announce(ns.L['%s teaches %s']:format(beast.name, FormatAbilities(abilities)))
+  end
+
   return true
 end

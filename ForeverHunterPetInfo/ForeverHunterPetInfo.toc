@@ -2,11 +2,13 @@
 ## Title: |cffabd473Forever|r Hunter Pet Info
 ## Notes: Shows the family, diet, attack speed and abilities of tameable beasts in their tooltip, with a searchable beast list. /fhpi
 ## Author: Ahmet Simsek
-## Version: v0.1.0
+## Version: @project-version@
 ## SavedVariables: ForeverHunterPetInfoDB
-## IconTexture: 132161
+## IconTexture: Interface\AddOns\ForeverHunterPetInfo\Media\Logo
 ## Category: Combat
 ## X-License: GPL-2.0
+## X-Curse-Project-ID: 1811105
+## X-Website: https://github.com/simsekahmett/hunterpetinfo-forever
 ## AddonCompartmentFunc: ForeverHunterPetInfo_OnCompartmentClick
 
 Core\Init.lua

@@ -2,7 +2,7 @@ local ADDON, ns = ...
 
 ns.ADDON = ADDON
 ns.TITLE = 'Forever Hunter Pet Info'
-ns.ICON = 132161
+ns.LOGO = 'Interface\\AddOns\\' .. ADDON .. '\\Media\\Logo'
 ns.Data = {}
 
 -- Missing translations fall back to the English text, which is the key

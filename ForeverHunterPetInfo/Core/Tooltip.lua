@@ -197,6 +197,11 @@ function Tooltip:_OnUnit(tooltip, data)
 
   if kind == 'Creature' then
     family = ns.Learner:Observe(unit, npcId)
+
+    -- With Beast Lore on the beast, its tooltip lists what it teaches
+    if type(data) == 'table' then
+      ns.Learner:ReadLore(npcId, family or (DB:GetBeast(npcId) or {}).family, data.lines)
+    end
   else
     family = DB:GetFamilyKey(ns.Read(UnitCreatureFamily, unit))
   end

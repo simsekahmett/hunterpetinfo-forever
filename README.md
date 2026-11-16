@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" alt="PetInfo Forever" width="200"></p>
+
 # ForeverHunterPetInfo
 
 **What a hunter wants to know about a beast before taming it, for World of
@@ -28,6 +30,7 @@ No dependencies: the data ships with the addon.
 - Filter by family, by the ability a beast teaches and its rank, by the
   slowest attack speed you accept, and to the beasts you can tame at your level.
 - Sort by name, attack speed or level.
+- Show only what was noted in game: the new beasts and the confirmed abilities.
 - Shift-click a beast to write its name and position in the chat.
 
 ### It learns as you play
@@ -37,8 +40,11 @@ the abilities they teach are those of Classic, for the 550 beasts that are
 still in the game.
 
 - **A beast that is not shipped** (Forever added more than a hundred) is noted
-  the first time you hover it, with its family, level and zone, and is listed
-  from then on.
+  as soon as it is near you: when its nameplate appears, when you target it
+  or hover it. Its family, level and zone are kept, a line in the chat tells
+  you so, and it is listed from then on.
+- **Cast Beast Lore on a beast and hover it**: the abilities its tooltip then
+  lists are noted as what it teaches, without taming it.
 - **When you tame a beast**, what your new pet knows and how fast it attacks
   is noted as what that beast teaches. It replaces the Classic data and is
   marked as confirmed.
@@ -69,10 +75,28 @@ Click the minimap button, or use a command:
 - In combat and in instances, the game hides from addons which unit a tooltip
   is of. The tooltip then stays as the game made it.
 - The abilities that are new in Forever (Swipe, Web, Sonic Blast...) are not
-  in the shipped data: a beast is only known to teach one once you tamed it.
+  in the shipped data: a beast is only known to teach one once you cast
+  Beast Lore on it or tamed it.
+- Nameplates must be shown for the beasts around you to be noted without
+  hovering or targeting them. Nothing is noted in combat, when the game hides
+  what a unit is.
 - A beast is noted as tamed when a pet appears after Tame Beast was cast. If
   you teach it something within the second that follows, that is noted too.
 - The interface is in English. Beast and zone names are in your language.
+
+## Releases
+
+Pushing a tag publishes a release: the tests run, then the
+[BigWigs packager](https://github.com/BigWigsMods/packager) builds the zip,
+fills in the version, and uploads it to GitHub and CurseForge.
+
+```sh
+git tag v1.0.0        # v1.0.0-beta1 for a beta, v1.0.0-alpha1 for an alpha
+git push origin v1.0.0
+```
+
+It needs the `CF_API_TOKEN` secret in the repository, and the CurseForge
+project's ID in the TOC, as `## X-Curse-Project-ID`.
 
 ## Development
 
@@ -82,6 +106,8 @@ ForeverHunterPetInfo/   the addon
   UI/                   beast list, options, minimap button
   Data/                 families (by hand), generated beast data
   Locales/              interface translations
+  Media/                logo
+docs/                   logo
 tools/                  data generator
 tests/                  offline test harness
 ```

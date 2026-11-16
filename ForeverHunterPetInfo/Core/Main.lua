@@ -32,7 +32,7 @@ ns.On('PLAYER_LOGIN', function()
   local saved = _G.ForeverHunterPetInfoDB
 
   ns.DB:Init(saved)
-  ns.Learner:Init()
+  ns.Learner:Init(saved)
   ns.Tooltip:Init(saved)
   ns.MinimapButton:Init(saved)
   ns.Options:Init(saved)

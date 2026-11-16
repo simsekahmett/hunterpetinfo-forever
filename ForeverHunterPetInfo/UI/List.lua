@@ -68,7 +68,7 @@ local function ShowTooltip(row)
   if beast.isLearned then
     GameTooltip:AddLine(L['Seen in game, not part of the shipped data.'], 0.6, 0.6, 0.6, true)
   elseif not beast.abilitiesConfirmed and beast.abilities ~= nil then
-    GameTooltip:AddLine(L['Abilities as in Classic, confirmed once you tame it.'], 0.6, 0.6, 0.6, true)
+    GameTooltip:AddLine(L['Abilities as in Classic, confirmed with Beast Lore or once you tame it.'], 0.6, 0.6, 0.6, true)
   end
 
   GameTooltip:Show()

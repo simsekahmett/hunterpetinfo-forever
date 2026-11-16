@@ -11,8 +11,10 @@ local _, ns = ...
 --   speedSource               'tamed' (read from a tamed pet), 'classic' (as
 --                             it was in Classic) or 'seen' (of the wild beast)
 --   abilities                 { { name, rank }, ... } it teaches, or nil
---   abilitiesConfirmed        Whether those were read from a tamed pet
+--   abilitiesConfirmed        Whether those were read in game, from a tamed
+--                             pet or from Beast Lore
 --   isLearned                 Whether the addon only knows it from the game
+--   isNoted                   Whether anything of it was noted in game
 
 local L = ns.L
 local Data = ns.Data
@@ -202,8 +204,8 @@ function DB:GetBeast(npcId)
     end
   end
 
-  -- What a tamed pet showed replaces what is assumed
-  if note ~= nil and note.tamed then
+  -- What the game showed replaces what is assumed
+  if note ~= nil then
     if note.speed ~= nil then
       beast.speed, beast.speedSource = note.speed, 'tamed'
     end
@@ -223,6 +225,7 @@ function DB:GetBeast(npcId)
     beast.area = C_Map.GetAreaInfo(beast.areaId) or beast.area
   end
   beast.area = beast.area or ''
+  beast.isNoted = beast.isLearned or beast.abilitiesConfirmed or beast.speedSource == 'tamed' or false
 
   self.cache[npcId] = beast
   return beast
@@ -344,6 +347,7 @@ end
 --   rank      The rank of that ability, or of any ability if none is given
 --   maxSpeed  The slowest attack speed accepted
 --   maxLevel  The highest level accepted
+--   noted     Whether only the beasts something was noted of in game pass
 --   sort      A key of DB.sorts
 function DB:Search(filter)
   local words = {}
@@ -363,6 +367,8 @@ function DB:Search(filter)
     elseif filter.maxSpeed ~= nil and (beast.speed == nil or beast.speed > filter.maxSpeed + 0.001) then
       isMatch = false
     elseif filter.maxLevel ~= nil and beast.minLevel > filter.maxLevel then
+      isMatch = false
+    elseif filter.noted and not beast.isNoted then
       isMatch = false
     elseif filter.ability ~= nil then
       local rank = self:GetRank(beast, filter.ability)

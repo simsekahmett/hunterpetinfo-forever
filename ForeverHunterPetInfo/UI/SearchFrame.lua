@@ -13,7 +13,7 @@ ns.UI = UI
 
 local WIDTH, HEIGHT = 440, 560
 local PADDING = 12
-local LIST_TOP, LIST_BOTTOM = 122, 34
+local LIST_TOP, LIST_BOTTOM = 144, 34
 
 -- Creates a check box without a template, those differ between clients
 function ns.CreateCheckBox(parent, text, onClick)
@@ -145,10 +145,9 @@ function UI:_Create()
   table.insert(UISpecialFrames, 'ForeverHunterPetInfoFrame')
 
   local icon = frame:CreateTexture(nil, 'ARTWORK')
-  icon:SetSize(20, 20)
-  icon:SetPoint('TOPLEFT', PADDING, -10)
-  icon:SetTexture(ns.ICON)
-  icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+  icon:SetSize(26, 26)
+  icon:SetPoint('TOPLEFT', PADDING, -7)
+  icon:SetTexture(ns.LOGO)
 
   local title = frame:CreateFontString(nil, 'ARTWORK', 'GameFontNormalLarge')
   title:SetPoint('LEFT', icon, 'RIGHT', 6, 0)
@@ -239,6 +238,14 @@ function UI:_Create()
   end)
   self.levelCheck:SetPoint('TOPLEFT', PADDING - 4, -92)
 
+  -- Fourth row: what the addon picked up in game
+  self.notedCheck = ns.CreateCheckBox(frame, L['Only what was noted in game: new beasts and confirmed abilities'],
+                                      function(isChecked)
+    self.filter.noted = isChecked or nil
+    self:Refresh()
+  end)
+  self.notedCheck:SetPoint('TOPLEFT', PADDING - 4, -114)
+
   local reset = CreateFrame('Button', nil, frame, 'UIPanelButtonTemplate')
   reset:SetSize(70, 22)
   reset:SetPoint('TOPRIGHT', -PADDING, -93)
@@ -299,6 +306,7 @@ function UI:Reset()
   self.speedBox:SetText('')
   self.rankBox:SetText('')
   self.levelCheck:SetChecked(false)
+  self.notedCheck:SetChecked(false)
   self.familyPicker.Update()
   self.abilityPicker.Update()
   self.sortPicker.Update()
