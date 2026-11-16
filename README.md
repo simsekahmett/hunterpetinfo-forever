@@ -14,6 +14,8 @@ No dependencies: the data ships with the addon.
 
 ### Beast tooltips
 
+![The tooltip of Crag Coyote: attack speed, family, diet and the abilities it teaches](docs/screenshots/tooltip-crag-coyote.png)
+
 - **Attack speed**, with the passive that gives it (*Faster Attack V*).
 - **Family and diet**, optionally as icons.
 - **The abilities the beast teaches**, with their rank.
@@ -23,7 +25,11 @@ No dependencies: the data ships with the addon.
   level and zone.
 - A creature the addon has no data for still gets what is true of its family.
 
+![The tooltip of Mangy Mountain Boar, which eats anything and teaches Charge](docs/screenshots/tooltip-mangy-mountain-boar.png)
+
 ### Beast list
+
+![The beast list, with the details of Angerclaw Mauler](docs/screenshots/window.png)
 
 - Search by any part of a name, family, zone or ability. Several words must
   all match: `wolf barrens`.
@@ -107,7 +113,7 @@ ForeverHunterPetInfo/   the addon
   Data/                 families (by hand), generated beast data
   Locales/              interface translations
   Media/                logo
-docs/                   logo
+docs/                   logo, screenshots, CurseForge description
 tools/                  data generator
 tests/                  offline test harness
 ```

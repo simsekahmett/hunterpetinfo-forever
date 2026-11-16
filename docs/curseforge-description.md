@@ -12,6 +12,8 @@ It has **no dependencies**. The data ships with the addon.
 
 ### Beast tooltips
 
+![The tooltip of a beast](https://raw.githubusercontent.com/simsekahmett/hunterpetinfo-forever/main/docs/screenshots/tooltip-crag-coyote.png)
+
 Hover a beast and its tooltip also shows:
 
 - **how fast it will attack as your pet**, with the passive that gives it (*Faster Attack V*),
@@ -19,9 +21,13 @@ Hover a beast and its tooltip also shows:
 - **the abilities it teaches**, with their rank,
 - optionally the family's damage, armor and health bonus, and the abilities the family can learn.
 
+![A boar eats anything, and this one teaches Charge](https://raw.githubusercontent.com/simsekahmett/hunterpetinfo-forever/main/docs/screenshots/tooltip-mangy-mountain-boar.png)
+
 The **pets of other hunters** show the beast they were tamed from, with its level and zone, so you can go and tame the same. Every part can be turned off in the options.
 
 ### A searchable beast list
+
+![The beast list](https://raw.githubusercontent.com/simsekahmett/hunterpetinfo-forever/main/docs/screenshots/window.png)
 
 Open it from the minimap button or with `/fhpi`.
 
