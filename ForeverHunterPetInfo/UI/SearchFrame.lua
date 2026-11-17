@@ -238,6 +238,12 @@ function UI:_Create()
   end)
   self.levelCheck:SetPoint('TOPLEFT', PADDING - 4, -92)
 
+  self.rareCheck = ns.CreateCheckBox(frame, L['Rare only'], function(isChecked)
+    self.filter.rare = isChecked or nil
+    self:Refresh()
+  end)
+  self.rareCheck:SetPoint('TOPLEFT', 254, -92)
+
   -- Fourth row: what the addon picked up in game
   self.notedCheck = ns.CreateCheckBox(frame, L['Only what was noted in game: new beasts and confirmed abilities'],
                                       function(isChecked)
@@ -307,6 +313,7 @@ function UI:Reset()
   self.rankBox:SetText('')
   self.levelCheck:SetChecked(false)
   self.notedCheck:SetChecked(false)
+  self.rareCheck:SetChecked(false)
   self.familyPicker.Update()
   self.abilityPicker.Update()
   self.sortPicker.Update()

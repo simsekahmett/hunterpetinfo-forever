@@ -34,6 +34,7 @@ Open it from the minimap button or with `/fhpi`.
 - **Search** by any part of a name, family, zone or ability. `/fhpi wolf barrens` lists the wolves of the Barrens.
 - **Filter** by family, by the ability a beast teaches and its rank, and by the slowest attack speed you accept.
 - **Only the beasts you can tame at your level**: Forever does not let you tame a beast above your own.
+- **Rare only**: the rare beasts, on their own or within a family.
 - **Sort** by name, attack speed or level.
 - Shift-click a beast to write its name and position in the chat.
 

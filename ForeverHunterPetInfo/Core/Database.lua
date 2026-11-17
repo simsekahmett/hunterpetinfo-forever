@@ -13,6 +13,7 @@ local _, ns = ...
 --   abilities                 { { name, rank }, ... } it teaches, or nil
 --   abilitiesConfirmed        Whether those were read in game, from a tamed
 --                             pet or from Beast Lore
+--   isRare                    Whether it's a rare creature
 --   isLearned                 Whether the addon only knows it from the game
 --   isNoted                   Whether anything of it was noted in game
 
@@ -180,6 +181,7 @@ function DB:GetBeast(npcId)
     beast.minLevel, beast.maxLevel = row[MIN_LEVEL], row[MAX_LEVEL]
     beast.areaId, beast.x, beast.y = row[AREA_ID], row[X], row[Y]
     beast.area = row[AREA]
+    beast.isRare = Data.rareBeasts[npcId] or false
 
     if row[SPEED] > 0 then
       beast.speed, beast.speedSource = row[SPEED], 'classic'
@@ -198,6 +200,7 @@ function DB:GetBeast(npcId)
     beast.minLevel, beast.maxLevel = note.minLevel or 0, note.maxLevel or 0
     beast.areaId, beast.x, beast.y = 0, note.x or -1, note.y or -1
     beast.area = note.zone
+    beast.isRare = note.rare or false
 
     if note.seenSpeed ~= nil then
       beast.speed, beast.speedSource = note.seenSpeed, 'seen'
@@ -348,6 +351,7 @@ end
 --   maxSpeed  The slowest attack speed accepted
 --   maxLevel  The highest level accepted
 --   noted     Whether only the beasts something was noted of in game pass
+--   rare      Whether only the rare beasts pass
 --   sort      A key of DB.sorts
 function DB:Search(filter)
   local words = {}
@@ -369,6 +373,8 @@ function DB:Search(filter)
     elseif filter.maxLevel ~= nil and beast.minLevel > filter.maxLevel then
       isMatch = false
     elseif filter.noted and not beast.isNoted then
+      isMatch = false
+    elseif filter.rare and not beast.isRare then
       isMatch = false
     elseif filter.ability ~= nil then
       local rank = self:GetRank(beast, filter.ability)

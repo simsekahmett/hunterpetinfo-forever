@@ -75,9 +75,9 @@ print(CHATLOG[#CHATLOG])
 UNITS.nameplate3.level = 4
 FireEvent('NAME_PLATE_UNIT_ADDED', 'nameplate3')
 assert(saved.learned[238510].maxLevel == 4 and #CHATLOG == chat + 1, 'level range')
-UNITS.target = { guid = creature(238511), name = 'Ornery Galestrider', level = 12, family = 'Tallstrider' }
+UNITS.target = { guid = creature(238511), name = 'Ornery Galestrider', level = 12, family = 'Tallstrider', classification = 'rare' }
 FireEvent('PLAYER_TARGET_CHANGED')
-assert(saved.learned[238511], 'target')
+assert(saved.learned[238511] and saved.learned[238511].rare and not saved.learned[238510].rare, 'target')
 UNITS.target = UNITS.tooth; FireEvent('PLAYER_TARGET_CHANGED'); assert(saved.learned[2850] == nil)
 UNITS.nameplate5 = { guid = SECRET, family = SECRET }; FireEvent('NAME_PLATE_UNIT_ADDED', 'nameplate5')
 FireEvent('NAME_PLATE_UNIT_ADDED', SECRET)
@@ -158,6 +158,11 @@ local foxes = search({ family = 'Fox' }); assert(#foxes == 1 and foxes[1] == 238
 for _, npcId in ipairs(search({ ability = 'Bite', rank = 7 })) do assert(DB:GetRank(DB:GetBeast(npcId), 'Bite') == 7) end
 assert(#search({ ability = 'Bite', rank = 7 }) > 0 and #search({ ability = 'Bite' }) > #search({ ability = 'Bite', rank = 7 }))
 for _, npcId in ipairs(search({ maxLevel = 10 })) do assert(DB:GetBeast(npcId).minLevel <= 10) end
+local rares = search({ rare = true })
+assert(contains(rares, 2850) and contains(rares, 238511) and not contains(rares, 238510) and #rares < 100, 'rares: ' .. #rares)
+for _, npcId in ipairs(search({ rare = true, family = 'Cat' })) do assert(DB:GetBeast(npcId).family == 'Cat' and DB:GetBeast(npcId).isRare) end
+assert(ns.List.Describe(DB:GetBeast(2850)).name:find('Rare', 1, true), 'rare tag')
+print('rares: ' .. #rares .. ', rare cats: ' .. #search({ rare = true, family = 'Cat' }))
 local bySpeed = search({ family = 'Cat', sort = 'fast' }); assert(bySpeed[1] == 2850, 'sort')
 local byLevel = search({ sort = 'high' }); assert(DB:GetBeast(byLevel[1]).maxLevel >= DB:GetBeast(byLevel[#byLevel]).maxLevel)
 
@@ -177,6 +182,8 @@ for _, npcId in ipairs(UI.results) do assert(DB:GetBeast(npcId).speed <= 1.3) en
 UI.levelCheck.scripts.OnClick(); UI.onlyTameable = true; PLAYER_LEVEL = 20; UI:Refresh()
 for _, npcId in ipairs(UI.results) do assert(DB:GetBeast(npcId).minLevel <= 20) end
 UI.familyPicker.scripts.OnClick(); UI.sortPicker.scripts.OnClick()
+UI:Reset(); assert(#UI.results == total)
+UI.rareCheck.scripts.OnClick(); UI.filter.rare = true; UI:Refresh(); assert(#UI.results == #rares, 'rare filter')
 UI:Reset(); assert(#UI.results == total)
 UI.notedCheck.scripts.OnClick(); UI.filter.noted = true; UI:Refresh(); assert(#UI.results == 3, 'noted filter')
 UI:Reset(); assert(#UI.results == total)

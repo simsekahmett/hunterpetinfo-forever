@@ -177,6 +177,9 @@ function Learner:Observe(unit, npcId)
   note.zone = zone
   note.x, note.y = x, y
 
+  local classification = ns.Read(UnitClassification, unit)
+  note.rare = (classification == 'rare' or classification == 'rareelite') or nil
+
   local speed = ns.Read(UnitAttackSpeed, unit)
   if speed ~= nil and speed > 0 then
     note.seenSpeed = math.floor(speed * 10 + 0.5) / 10

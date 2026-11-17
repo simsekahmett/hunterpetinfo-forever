@@ -35,6 +35,7 @@ No dependencies: the data ships with the addon.
   all match: `wolf barrens`.
 - Filter by family, by the ability a beast teaches and its rank, by the
   slowest attack speed you accept, and to the beasts you can tame at your level.
+- Show only the rare beasts, on their own or within a family.
 - Sort by name, attack speed or level.
 - Show only what was noted in game: the new beasts and the confirmed abilities.
 - Shift-click a beast to write its name and position in the chat.

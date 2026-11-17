@@ -69,6 +69,7 @@ function UnitName(u) return unit(u).name end
 function UnitLevel(u) if u == 'player' then return PLAYER_LEVEL or 30 end return unit(u).level end
 function UnitCreatureFamily(u) return unit(u).family end
 function UnitAttackSpeed(u) return unit(u).speed end
+function UnitClassification(u) return unit(u).classification or 'normal' end
 function UnitPlayerControlled(u) return unit(u).controlled or false end
 function UnitIsUnit(a, b) return UNITS[a] ~= nil and UNITS[a] == UNITS[b] end
 

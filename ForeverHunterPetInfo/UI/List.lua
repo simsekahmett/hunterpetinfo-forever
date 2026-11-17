@@ -14,6 +14,8 @@ ns.List = List
 
 local GRAY = '|cff909090'
 local ROW_HEIGHT = 44
+-- The silver of the game's rare creatures
+local RARE = '|cffc7c7cf'
 
 -- Everything is shown in the tooltip of a row, whatever the player's options
 local everything = {
@@ -55,6 +57,11 @@ local function ShowTooltip(row)
 
   GameTooltip:SetOwner(row, 'ANCHOR_RIGHT')
   GameTooltip:SetText(beast.name)
+
+  if beast.isRare then
+    GameTooltip:AddLine(RARE .. L['Rare'] .. '|r')
+  end
+
   GameTooltip:AddDoubleLine(L['Level'], FormatLevel(beast), 1, 0.82, 0, 1, 1, 1)
 
   if beast.area ~= '' then
@@ -242,7 +249,7 @@ function List.Describe(beast)
 
   return {
     icon = family and family.icon or 134400,
-    name = beast.name,
+    name = beast.name .. (beast.isRare and ('  ' .. RARE .. L['Rare'] .. '|r') or ''),
     speed = speed,
     place = place,
     abilities = table.concat(abilities, ', '),

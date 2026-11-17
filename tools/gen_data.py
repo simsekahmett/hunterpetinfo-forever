@@ -3,7 +3,7 @@
 
 Sources (nothing is needed at runtime):
   * QuestieDB/QuestieDB_Camelot.toc, from a WoW Forever AddOns folder
-      -> each beast's name, level, zone, position and localized names
+      -> each beast's name, level, rarity, zone, position and localized names
   * ClassicHunterPetInfo/Vanilla/pet_information.lua, pet_abilities.lua
       -> which NPCs are tameable, their family, attack speed and the
          abilities they teach, as they were in Classic
@@ -118,7 +118,9 @@ def as_row(value):
     return value or {}
 
 
-NPC_NAME, NPC_MIN_LEVEL, NPC_MAX_LEVEL, NPC_SPAWNS, NPC_ZONE = 1, 4, 5, 7, 9
+NPC_NAME, NPC_MIN_LEVEL, NPC_MAX_LEVEL, NPC_RANK, NPC_SPAWNS, NPC_ZONE = 1, 4, 5, 6, 7, 9
+# The ranks of a rare elite and of a rare creature
+RARE_RANKS = (2, 4)
 
 npc_id_list = decode("X-Npc-IDS", compressed=True)
 npc_ids = set(npc_id_list)
@@ -154,6 +156,7 @@ for npc in sorted(classic):
         "name": txt(row.get(NPC_NAME)) or beast["name"], "family": beast["family"],
         "min": low, "max": max(low, high), "zone": zone if zone > 0 else 0, "x": x, "y": y,
         "speed": beast["speed"], "abilities": beast["abilities"],
+        "rare": (row.get(NPC_RANK) or 0) in RARE_RANKS,
         # Instances have no area of their own in the data, the Classic name stands in
         "area": "" if zone > 0 else beast["area"],
     }
@@ -203,6 +206,10 @@ with open(out / "Beasts.lua", "w", encoding="utf-8", newline="\n") as f:
         elif abilities == "nil":
             fields.pop()
         f.write(f"[{npc}]={{{','.join(fields)}}},\n")
+    f.write("}\n\n-- The rare ones\nns.Data.rareBeasts = {\n")
+    for npc in sorted(beasts):
+        if beasts[npc]["rare"]:
+            f.write(f"[{npc}]=true,\n")
     f.write("}\n")
 
 with open(out / "BeastNames.lua", "w", encoding="utf-8", newline="\n") as f:
@@ -220,7 +227,8 @@ with open(out / "BeastNames.lua", "w", encoding="utf-8", newline="\n") as f:
 print(f"beasts: {len(beasts)} of {len(classic)} Classic ones")
 print(f"with abilities: {sum(1 for b in beasts.values() if b['abilities'])}; "
       f"with a known speed: {sum(1 for b in beasts.values() if b['speed'])}; "
-      f"without a zone: {sum(1 for b in beasts.values() if not b['zone'])}")
+      f"without a zone: {sum(1 for b in beasts.values() if not b['zone'])}; "
+      f"rare: {sum(1 for b in beasts.values() if b['rare'])}")
 print("not in Forever: " + (", ".join(missing) or "none"))
 print("abilities dropped: " + ", ".join(f"{f} {a} x{n}" for (f, a), n in sorted(dropped.items())))
 print("localized: " + ", ".join(f"{k}={len(v)}" for k, v in names.items()))
